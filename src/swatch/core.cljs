@@ -30,68 +30,34 @@
   (/ (dist [0 0 0] (cross (map - p1 p2) p))
      (dist p1 p2)))
 
-(defn most-like [[r g b :as c]]
+(defn octant [[r g b :as c]]
   (let [dist-to #(dist-pl [0 0 0] % c)
-        dists {:gray (dist-to [255 255 255])
-               :red (dist-to [255 0 0])
+        gray (dist-to [255 255 255])
+        dists {:red (dist-to [255 0 0])
                :green (dist-to [0 255 0])
                :blue (dist-to [0 0 255])
                :yellow (dist-to [255 255 0])
                :cyan (dist-to [0 255 255])
                :magenta (dist-to [255 0 255])}]
-    (key (apply min-key val dists))))
-
-(defn octant [c]
-  (most-like (rgb c)))
-
-(defn find-max [m]
-  (key (apply max-key val m)))
-
-(defn vote
-  ([cs] (map #(vote cs %) cs))
-  ([cs c]
-   (->> cs
-     (map (fn [{o :octant x :rgb}]
-            (let [r (:rgb c)]
-              {o (if-not (= x r)
-                   (/ (dist x r))
-                   0.2)})))
-     (remove nil?)
-     (apply merge-with +)
-     find-max
-     (assoc c :vote))))
+    (if (< gray 40)
+      :gray
+      (key (apply min-key val dists)))))
 
 (defn parse-colors [s]
   (->> (string/split s #",")
     (map (fn [c]
-           {:color (str "#" c)
-            :rgb (rgb c)
-            :octant (octant c)}))
-    vote))
+           (let [r (rgb c)]
+             {:color (str "#" c)
+              :rgb r
+              :octant (octant r)})))))
 
 (def colors (r/atom []))
 
 (defn update-colors! []
   (->> (.slice js/location.hash 1)
     parse-colors
-    (group-by :vote)
+    (group-by :octant)
     (reset! colors)))
-
-(defn best-by [f xs]
-  (->> xs
-    (map #(vector % (f %)))
-    (apply min-key second)
-    first))
-
-(defn chain-by [f xs]
-  (loop [acc (take 1 xs)
-         xs (drop 1 xs)]
-    (if (seq xs)
-      (let [x (last acc)
-            best (best-by #(f x %) xs)
-            xs (remove #(= best %) xs)]
-        (recur (conj acc best) xs))
-      acc)))
 
 (defn swatch [{o :octant :keys [color] :as c}]
   ^{:key color}
@@ -107,7 +73,7 @@
         [:h3 (str (name g) "s")]
         [:div
          (->> cs
-           (chain-by #(dist (:rgb %1) (:rgb %2)))
+           (sort-by #(dist [0 0 0] (:rgb %)))
            (map swatch))]]))])
 
 (r/render-component [swatches]
