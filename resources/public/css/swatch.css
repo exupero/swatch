@@ -1,0 +1,28 @@
+body {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+}
+
+h3 {
+  text-transform: capitalize;
+  margin-bottom: 0;
+}
+
+.swatch {
+  display: inline-block;
+  width: 4rem;
+  height: 4rem;
+  margin: 0 0.1rem;
+  border: 1px solid gray;
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.swatch::before {
+  content: attr(data-color);
+  font-family: monospace;
+  position: absolute;
+  top: 4rem;
+  width: 4rem;
+  text-align: center;
+  color: gray;
+}
