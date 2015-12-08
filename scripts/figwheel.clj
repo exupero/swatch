@@ -3,8 +3,6 @@
 
 (ra/start-figwheel!
   {:figwheel-options {:server-port 3455
-                      :nrepl-port 52522
-                      :nrepl-middleware ["cemerick.piggieback/wrap-cljs-repl"]
                       :css-dirs ["resources/public/css"]}
    :build-ids ["dev"]
    :all-builds
